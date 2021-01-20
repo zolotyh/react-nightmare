@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Mocha Tests" time="1.6700" tests="2" failures="0">
+  <testsuite name="Root Suite" timestamp="2020-09-13T23:48:56" tests="0" time="0.0000" failures="0">
+  </testsuite>
+  <testsuite name="empty" timestamp="2020-09-13T23:48:56" tests="1" file="/Users/aleksei_zolotykh/work/education-project/react-nightmare/e2e/empty_1_test.ts" time="1.5160" failures="0">
+    <testcase name="empty: test something" time="1.5160" classname="test something">
+    </testcase>
+  </testsuite>
+  <testsuite name="empty" timestamp="2020-09-13T23:48:58" tests="1" file="/Users/aleksei_zolotykh/work/education-project/react-nightmare/e2e/empty_test.ts" time="0.1540" failures="0">
+    <testcase name="empty: test something" time="0.1540" classname="test something">
+    </testcase>
+  </testsuite>
+</testsuites>

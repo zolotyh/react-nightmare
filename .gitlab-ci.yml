@@ -1,0 +1,122 @@
+image: node:14.10.0-alpine3.11
+
+variables:
+  DOCKER_DRIVER: overlay2
+  PLAYWRIGHT_BROWSERS_PATH: 0
+
+
+cache: &global_cache
+  untracked: true
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - node_modules/
+
+stages:
+  - setup
+  - build
+  - test
+  - deploy
+
+setup:
+  stage: setup
+  script:
+    - "[ -d \"./node_modules\" ] && echo \"✅ node_modules from cache were used\" || npm ci"
+
+build:
+  stage: build
+  artifacts:
+    paths:
+      - build
+  cache:
+      # inherit all global cache settings
+      <<: *global_cache
+      # override the policy
+      policy: pull
+  script:
+    - npm run build
+
+e2e:
+  stage: test
+  image: zolotyh/draftplaywright:2.0
+  variables:
+    # resolution for e2e testing
+    SCREEN_WIDTH: 1920
+    SCREEN_HEIGHT: 1080
+    NODE_ENV: "production"
+    # reduces resources usage for dev server
+    # see https://create-react-app.dev/docs/advanced-configuration/
+    CHOKIDAR_USEPOLLING: "true" # keep true as string https://gitlab.com/gitlab-org/gitlab-foss/-/issues/36401
+  script:
+    #copy predifined certs from image
+    - mkdir .certs
+    - cp /root/.certs/* .certs
+    ################################
+    - npm run e2e
+  artifacts:
+    when: always
+    reports:
+      junit: e2e/output/test-results.xml
+    paths:
+      - e2e/output
+    expire_in: 1 week
+  cache:
+      # inherit all global cache settings
+      <<: *global_cache
+      # override the policy
+      policy: pull
+
+lighthouse:
+  image: cypress/browsers:node14.7.0-chrome84
+  stage: test
+  dependencies:
+    - build
+  script:
+    - npm run lighthouse
+  artifacts:
+    paths:
+      - ./.lighthouseci
+  cache:
+      # inherit all global cache settings
+      <<: *global_cache
+      # override the policy
+      policy: pull
+
+linters:
+  stage: test
+  script:
+    - npm run lint
+  cache:
+      # inherit all global cache settings
+      <<: *global_cache
+      # override the policy
+      policy: pull
+
+unit:
+  stage: test
+  script:
+    - npm run test -- --coverage
+  artifacts:
+    when: always
+    reports:
+      junit: junit.xml
+    paths:
+      - coverage
+    expire_in: 1 week
+  coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
+  cache:
+      # inherit all global cache settings
+      <<: *global_cache
+      # override the policy
+      policy: pull
+
+deploy:
+  stage: deploy
+  script:
+    - echo "deploy to server" #there could be an upload to the npm registry
+  cache:
+      # inherit all global cache settings
+      <<: *global_cache
+      # override the policy
+      policy: pull
